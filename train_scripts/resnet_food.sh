@@ -1,0 +1,17 @@
+th main.lua \
+-depth 34 \
+-batchSize 32 \
+-nGPU 1 \
+-nThreads 4 \
+-data /media/eightbit/data_hdd/Datasets/UECFOOD256 \
+-dataset imagenet \
+-nClasses 251 \
+-resetClassifier true \
+-backend cudnn \
+-nEpochs 500 \
+-retrain /media/eightbit/data_hdd/NNBase/Models/Torch/Food/model.t7 \
+-LR 0.005 \
+-LR_decay_step 80 \
+-gen trained_models_food/  \
+-savePath trained_models_food/ \
+-checkpoint true \
