@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ResNet training in Torch
 ============================
 
@@ -60,3 +61,7 @@ This implementation differs from the ResNet paper in a few ways:
 **Weight decay**: We apply weight decay to all weights and biases instead of just the weights of the convolution layers.
 
 **Strided convolution**: When using the bottleneck architecture, we use stride 2 in the 3x3 convolution, instead of the first 1x1 convolution.
+=======
+# resnet.torch
+an updated version of fb.resnet.torch with many additions.
+>>>>>>> a622f268eeceb170432cd7c7f84176ef40856cd7
