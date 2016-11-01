@@ -1,3 +1,5 @@
+<h3>resnet.torch</h3>
+
 This is a fork of https://github.com/facebook/fb.resnet.torch. Refer to that if you need to know the details of this library.
 
 This code is heavily modified with many additions throughout my research. Many of the changes are optional and defined in "opts.lua". Here is the list of the additions by no means complete.
