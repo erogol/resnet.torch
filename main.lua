@@ -52,27 +52,29 @@ local bestLoss = math.huge
 local bestEpoch = math.huge
 for epoch = startEpoch, opt.nEpochs do
    -- Train for a single epoch
-   local trainTop1, trainTop5, trainLoss = trainer:train(epoch, trainLoader)
+   local trainTop1, trainTop5, trainLoss, trainLossAbs = trainer:train(epoch, trainLoader)
 
    -- Run model on validation set
-   local testTop1, testTop5, testLoss = trainer:test(epoch, valLoader)
+   local testTop1, testTop5, testLoss, testLossAbs = trainer:test(epoch, valLoader)
 
    -- Update training stats
    table.insert(trainingStats.testError, testTop1)
    table.insert(trainingStats.trainError, trainTop1)
-   table.insert(trainingStats.trainLoss, trainLoss)
-   table.insert(trainingStats.testLoss, testLoss)
+   -- table.insert(trainingStats.trainLoss, trainLoss)
+   -- table.insert(trainingStats.testLoss, testLoss)
+   table.insert(trainingStats.trainLoss, trainLossAbs) -- for regression
+   table.insert(trainingStats.testLoss, testLossAbs)
 
    -- Plot learning curves
    plotting.error_curve(trainingStats, opt)
    plotting.loss_curve(trainingStats, opt)
 
    local bestModel = false
-   if testLoss < bestLoss then
+   if testLossAbs < bestLoss then
       bestModel = true
       bestTop1 = testTop1
       bestTop5 = testTop5
-      bestLoss = testLoss
+      bestLoss = testLossAbs
       bestEpoch = epoch
       print(string.format(' * Best Model -- epoch:%i  top1: %6.3f  top5: %6.3f  loss: %6.3f', bestEpoch, bestTop1, bestTop5, bestLoss))
 
