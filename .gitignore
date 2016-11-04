@@ -2,4 +2,5 @@ gen/
 libnccl.so
 model_best.t7
 checkpoints
+my_models/
 *.t7
