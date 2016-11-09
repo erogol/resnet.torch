@@ -134,9 +134,15 @@ function Trainer:train(epoch, dataloader)
         local avgPred = outputSoft * torch.range(1,self.opt.nClasses):cuda()
         local lossAbs = absCriterion:forward(avgPred, self.target)
 
+
         self.model:zeroGradParameters()
         self.criterion:backward(self.model.output, self.target)
         self.model:backward(self.input, self.criterion.gradInput)
+
+        -- print(" => Criterron change1")
+        -- local t = self.criterion:backward(self.model.output, self.target)
+        -- self.model:zeroGradParameters()
+        -- self.model:backward(self.input, t)
 
         optim.sgd(feval, self.params, self.optimState)
 
