@@ -65,7 +65,7 @@ function M.setup(opt, checkpoint, classWeights)
         local optnet = require 'optnet'
         local imsize = 224
         local sampleInput = torch.zeros(4,3,imsize,imsize):cuda()
-        optnet.optimizeMemory(model, sampleInput, {inplace = false, mode = 'training'})
+        optnet.optimizeMemory(model, sampleInput, {inplace = true, mode = 'training'})
     end
 
     -- This is useful for fitting ResNet-50 on 4 GPUs, but requires that all
@@ -118,15 +118,15 @@ function M.setup(opt, checkpoint, classWeights)
 
         local linear
 
-        -- linear = nn.Linear(orig.weight:size(2), opt.nClasses)
-        -- linear.bias:zero()
+        linear = nn.Linear(orig.weight:size(2), opt.nClasses)
+        linear.bias:zero()
         model:remove(#model.modules)
-        -- model:add(linear:cuda())
+        model:add(linear:cuda())
 
-        print(" => Changes for the new criterion!!!")
+        -- print(" => Changes for the new criterion!!!")
         -- for new criterion
-        model:add(nn.NormalizedLinearNoBias(orig.weight:size(2), opt.nClasses):cuda())
-        model:add(nn.Normalize(2):cuda())
+        -- model:add(nn.NormalizedLinearNoBias(orig.weight:size(2), opt.nClasses):cuda())
+        -- model:add(nn.Normalize(2):cuda())
     else
         local orig = model:get(#model.modules)
         assert(orig.weight:size(1) == opt.nClasses)
@@ -166,11 +166,9 @@ function M.setup(opt, checkpoint, classWeights)
         local imageInfo = torch.load(cachePath)
         print(" => Class weighting enabled !!")
         class_weights = torch.Tensor(imageInfo.classWeights)
-        -- criterion = nn.CrossEntropyCriterion(class_weights):cuda()
+        criterion = nn.CrossEntropyCriterion(class_weights):cuda()
     else
-        -- criterion = nn.CrossEntropyCriterion():cuda()
-        print(" => ClassSimplexCriterion ")
-        criterion = nn.ClassSimplexCriterion(opt.nClasses):cuda()
+        criterion = nn.CrossEntropyCriterion():cuda()
     end
     return model, criterion
 end

@@ -139,11 +139,6 @@ function Trainer:train(epoch, dataloader)
         self.criterion:backward(self.model.output, self.target)
         self.model:backward(self.input, self.criterion.gradInput)
 
-        -- print(" => Criterron change1")
-        -- local t = self.criterion:backward(self.model.output, self.target)
-        -- self.model:zeroGradParameters()
-        -- self.model:backward(self.input, t)
-
         optim.sgd(feval, self.params, self.optimState)
 
         local top1, top5 = self:computeScore(output, sample.target, 1)
