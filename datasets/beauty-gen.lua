@@ -28,7 +28,6 @@ local function findClasses(dir)
       if not classToIdx[class] and class ~= '.' and class ~= '..' then
          table.insert(classList, class)
          classToIdx[class] = #classList
-         print(class)
       end
    end
 
@@ -86,9 +85,11 @@ local function findImages(dir, classList, classToIdx)
 
    --- Find number of instances per classId
    classCounts = {}
-   classWeights = {}
-   totalRevFreq = 0
+   local classWeights = {}
+   avgLRDecay = 0 -- a lr decay facator due to class weigthing
+   totalInstanceCount = 0
    minClassOccur = 999999999999
+   medianClassOccur = 0
    for i, className in ipairs(classList) do
      idx = classToIdx[className]
      indices = torch.find(imageClass, idx)
@@ -97,12 +98,23 @@ local function findImages(dir, classList, classToIdx)
      if numClassOccur < minClassOccur then
          minClassOccur = numClassOccur
      end
-     print("class"..idx.." has "..numClassOccur.." instances ")
+     print(" | | class"..idx.." has "..numClassOccur.." instances ")
+     totalInstanceCount = totalInstanceCount + numClassOccur
     end
+    --- Find median class occurance
+    local _counts = {}
+    for k, v in pairs(classCounts) do
+        table.insert(_counts, v)
+    end
+    medianClassOccur = torch.median(torch.FloatTensor(_counts))[1]
+    print(" | Class Weighting Numerator "..medianClassOccur)
     --- Class Weights
     for i, classCount in ipairs(classCounts) do
-       classWeights[i] = minClassOccur/classCount
+       classWeights[i] = medianClassOccur/classCount
+       avgLRDecay = avgLRDecay + (classWeights[i]*classCounts[i])
     end
+    avgLRDecay = avgLRDecay / totalInstanceCount
+    print(" | Averate learning rate decay: "..avgLRDecay)
     return imagePath, imageClass, classWeights
 end
 
@@ -125,12 +137,13 @@ function M.exec(opt, cacheFile)
    print(" | finding all training images")
    local trainImagePath, trainImageClass, trainClassRevFreq = findImages(trainDir, classList, classToIdx)
 
-   print("ClassWeights")
+   print(" | Class Weights:")
    print(trainClassRevFreq)
    local info = {
       basedir = opt.data,
       classList = classList,
-      classWeights = classWeights,
+      classWeights = trainClassRevFreq,
+      avgLRDecay = avgLRDecay,
       train = {
          imagePath = trainImagePath,
          imageClass = trainImageClass,

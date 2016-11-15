@@ -166,7 +166,7 @@ function M.setup(opt, checkpoint, classWeights)
         local imageInfo = torch.load(cachePath)
         print(" => Class weighting enabled !!")
         class_weights = torch.Tensor(imageInfo.classWeights)
-        criterion = nn.CrossEntropyCriterion(class_weights):cuda()
+        criterion = nn.CrossEntropyCriterion(class_weights, false):cuda()
     else
         criterion = nn.CrossEntropyCriterion():cuda()
     end

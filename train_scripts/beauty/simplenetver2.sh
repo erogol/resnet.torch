@@ -7,7 +7,7 @@ th main.lua \
 -nClasses 10 \
 -backend cudnn \
 -nEpochs 225 \
--classWeighting false \
+-classWeighting true \
 -resetClassifier true \
 -LR 0.045 \
 -LR_decay_step 75 \
@@ -15,4 +15,3 @@ th main.lua \
 -optnet true \
 -save my_models/beauty/ \
 -netType simplenetver2 \
--model_init_LR -1 \
