@@ -2,12 +2,12 @@ th main.lua \
 -batchSize 96 \
 -nGPU 1 \
 -nThreads 5 \
--data /media/eightbit/data_ssd/0.5MARGIN_ver2/ \
--dataset beauty \
+-data /media/eightbit/data_ssd/0.5MARGIN_ver3/ \
+-dataset beautyBalanced \
 -nClasses 10 \
 -backend cudnn \
 -nEpochs 225 \
--classWeighting true \
+-classWeighting false \
 -resetClassifier true \
 -LR 0.045 \
 -LR_decay_step 75 \
