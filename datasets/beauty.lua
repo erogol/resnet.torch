@@ -67,8 +67,8 @@ end
 
 -- Computed from random subset of ImageNet training images
 local meanstd = {
-   mean = { 0.485, 0.456, 0.406 },
-   std = { 0.229, 0.224, 0.225 },
+   mean = { 0.458, 0.458, 0.458 }, -- 117 pixel value
+   std = { 0.2, 0.2, 0.2 },
 }
 local pca = {
    eigval = torch.Tensor{ 0.2175, 0.0188, 0.0045 },

@@ -13,6 +13,7 @@ require 'nnlr'
 require 'nn'
 
 local optim = require 'optim'
+logger = optim.Logger('accuracy.log')
 local metrics = require 'utils/metrics'
 
 local M = {}
@@ -41,10 +42,10 @@ function Trainer:__init(model, criterion, opt, optimState)
         nesterov = true,
         dampening = 0.0,
         weightDecay = opt.weightDecay,
-        --Adam parameters
-        -- beta1 = 0.9,
-        -- beta2 = 0.999,
-        --LBFGS parameters
+        -- Adam parameters
+        beta1 = 0.9,
+        beta2 = 0.999,
+        -- LBFGS parameters
         -- maxIter = 5,
         -- lineSearch = optim.lswolfe
     }
@@ -58,13 +59,13 @@ function Trainer:train(epoch, dataloader)
         self.optimState.learningRates = self.optimState.learningRates * self:learningRatesDecay(epoch)
         if self.optimState.learningRates:max() ~= self.lastLearningRate then
             self.lastLearningRate = self.optimState.learningRates:max()
-            print( "=> Learning rate changed to ..".. self.lastLearningRate)
+            print( "=> Learning rate changed to .. ".. self.lastLearningRate)
         end
     else
         self.optimState.learningRate = self:learningRate(epoch)
         if self.optimState.learningRate ~= self.lastLearningRate then
             self.lastLearningRate = self.optimState.learningRate
-            print( "=> Learning rate changed to ..".. self.lastLearningRate)
+            print( "=> Learning rate changed to .. ".. self.lastLearningRate)
         end
     end
 
@@ -139,7 +140,11 @@ function Trainer:train(epoch, dataloader)
         self.criterion:backward(self.model.output, self.target)
         self.model:backward(self.input, self.criterion.gradInput)
 
-        optim.sgd(feval, self.params, self.optimState)
+        if self.opt.optimizer == 'adam' then
+            optim.adam(feval, self.params, self.optimState)
+        else
+            optim.sgd(feval, self.params, self.optimState)
+        end
 
         local top1, top5 = self:computeScore(output, sample.target, 1)
         top1Sum = top1Sum + top1*batchSize
@@ -231,8 +236,14 @@ end
 function Trainer:learningRatesDecay(epoch)
     -- Training schedule
     local decay = 0
-    decay = math.floor((epoch - 1) / self.opt.LR_decay_step)
-    return math.pow(0.1, decay)
+    if self.opt.optimizer == 'adam' then
+        -- decay = 1.0/math.sqrt(epoch)
+        decay = 1
+    else
+        decay = math.floor((epoch - 1) / self.opt.LR_decay_step)
+        decay = math.pow(0.1, decay)
+    end
+    return decay
 end
 
 
@@ -240,6 +251,12 @@ function Trainer:learningRate(epoch)
     -- Training schedule
     if self.opt.model_init_LR > 0 and epoch < 5 then
         return self.opt.model_init_LR
+    elseif self.opt.optimizer == 'adam' then
+        local decay = 0
+        -- decay = 1.0/math.sqrt(epoch)
+        decay = 1
+        print(' => Adam optimizer lr decay '.. decay)
+        return self.opt.LR * decay
     else
         local decay = 0
         decay = math.floor((epoch - 1) / self.opt.LR_decay_step)

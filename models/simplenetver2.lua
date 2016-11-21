@@ -2,6 +2,11 @@
 -- 1. More layers better results
 -- 2. Max pooling is better for fine-details
 -- 3. BN reduces performance for small datasets
+-- X. More layers to 4th and 5th modules
+-- X. ClassSimplexCriterion -- https://arxiv.org/pdf/1506.08230v4.pdf
+-- 4. Dilated convolution
+-- 5. ELU activation
+-- 6. Adam optimizer
 --
 
 local nn = require 'nn'

@@ -112,7 +112,6 @@ function M.setup(opt, checkpoint, classWeights)
         print(' => Replacing classifier with ' .. opt.nClasses .. '-way classifier')
 
           local orig = model:get(#model.modules)
-          print(torch.type(orig))
           assert(torch.type(orig) == 'nn.Linear',
              'expected last layer to be fully connected')
 
