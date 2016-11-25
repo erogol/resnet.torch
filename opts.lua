@@ -17,6 +17,7 @@ function M.parse(arg)
     cmd:text('Options:')
     ------------ General options --------------------
     cmd:option('-data',       '',         'Path to dataset')
+    cmd:option('-compute_mean_std', 'false',   'Compute mean and std')
     cmd:option('-dataset',    'imagenet', 'Options: imagenet | cifar10 | cifar100')
     cmd:option('-manualSeed', 0,          'Manually set RNG seed')
     cmd:option('-nGPU',       1,          'Number of GPUs to use by default')
@@ -69,6 +70,7 @@ function M.parse(arg)
     opt.optnet = opt.optnet ~= 'false'
     opt.resetClassifier = opt.resetClassifier ~= 'false'
     opt.classWeighting = opt.classWeighting ~= 'false'
+    opt.computeMeanStd = opt.computeMeanStd ~= 'false'
     -- opt.finetuneLastLayer = opt.finetuneLastLayer ~= 'false'
     opt.freeze = opt.freeze ~= 'false'
 

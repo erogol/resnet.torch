@@ -13,7 +13,6 @@ require 'nnlr'
 require 'nn'
 
 local optim = require 'optim'
-logger = optim.Logger('accuracy.log')
 local metrics = require 'utils/metrics'
 
 local M = {}
@@ -237,8 +236,7 @@ function Trainer:learningRatesDecay(epoch)
     -- Training schedule
     local decay = 0
     if self.opt.optimizer == 'adam' then
-        -- decay = 1.0/math.sqrt(epoch)
-        decay = 1
+        decay = 1.0/math.sqrt(epoch)
     else
         decay = math.floor((epoch - 1) / self.opt.LR_decay_step)
         decay = math.pow(0.1, decay)
@@ -253,8 +251,7 @@ function Trainer:learningRate(epoch)
         return self.opt.model_init_LR
     elseif self.opt.optimizer == 'adam' then
         local decay = 0
-        -- decay = 1.0/math.sqrt(epoch)
-        decay = 1
+        decay = 1.0/math.sqrt(epoch)
         print(' => Adam optimizer lr decay '.. decay)
         return self.opt.LR * decay
     else

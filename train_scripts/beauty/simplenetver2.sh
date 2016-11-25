@@ -16,3 +16,4 @@ th main.lua \
 -save my_models/beauty/ \
 -netType simplenetver2 \
 -optimizer adam \
+-compute_mean_std true \

@@ -37,6 +37,10 @@ local model, criterion = models.setup(opt, checkpoint)
 -- The trainer handles the training loop and evaluation on validation set
 local trainer = Trainer(model, criterion, opt, optimState)
 
+-- Logger
+logger = optim.Logger(paths.concat(opt.save,'training.log'))
+logger:setNames{"Training Error", 'Validation Error', "Training Loss", "Validation Loss"}
+
 if opt.testOnly then
    local top1Err, top5Err = trainer:test(0, valLoader)
    print(string.format(' * Results top1: %6.3f  top5: %6.3f', top1Err, top5Err))
@@ -64,6 +68,9 @@ for epoch = startEpoch, opt.nEpochs do
    -- table.insert(trainingStats.testLoss, testLoss)
    table.insert(trainingStats.trainLoss, trainLossAbs) -- for regression
    table.insert(trainingStats.testLoss, testLossAbs)
+
+   -- Update logger
+   logger:add{trainTop1, testTop1, trainLossAbs, testLossAbs}
 
    -- Plot learning curves
    plotting.error_curve(trainingStats, opt)

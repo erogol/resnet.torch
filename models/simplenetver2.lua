@@ -2,11 +2,14 @@
 -- 1. More layers better results
 -- 2. Max pooling is better for fine-details
 -- 3. BN reduces performance for small datasets
+-- 4. ELU activation (faster convergence)
+-- ?. YuV color space
+-- ?. DarknetTiny
 -- X. More layers to 4th and 5th modules
 -- X. ClassSimplexCriterion -- https://arxiv.org/pdf/1506.08230v4.pdf
--- 4. Dilated convolution
--- 5. ELU activation
--- 6. Adam optimizer
+-- X. Adam optimizer
+-- ?. Dilated convolution
+-- X. AVG pooling instead of max (slower convergence and bad loss)
 --
 
 local nn = require 'nn'
@@ -14,7 +17,7 @@ require 'cunn'
 
 local Convolution = cudnn.SpatialConvolution
 local Avg = cudnn.SpatialAveragePooling
-local ReLU = cudnn.ReLU
+local ReLU = nn.ELU
 local Max = nn.SpatialMaxPooling
 local SBatchNorm = nn.SpatialBatchNormalization
 
