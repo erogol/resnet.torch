@@ -1,0 +1,36 @@
+digraph G {
+labelloc="t";
+label="triplet_net";
+node [shape = oval]; 
+n1[label="Node1\nmodule = nn.PairwiseDistance\lreverseMap = {}\lmapindex = {Node4,Node5}" tooltip="[./models/init_triplet.lua]:123_"];
+n2[label="Node2\ninput = {}\lmapindex = {Node1,Node3}\lreverseMap = {}" tooltip="[[C]]:-1_"];
+n3[label="Node3\nmodule = nn.PairwiseDistance\lreverseMap = {}\lmapindex = {Node4,Node6}" tooltip="[./models/init_triplet.lua]:124_"];
+n4[label="Node4\ninput = {torch.CudaTensor[96x3x112x112]}\lmodule = nn.Sequential {\l  [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> (8) -> (9) -> (10) -> (11) -> (12) -> (13) -> (14) -> (15) -> (16) -> (17) -> (18) -> (19) -> (20) -> (21) -> (22) -> (23) -> (24) -> output]\l  (1): cudnn.SpatialConvolution(3 -> 16, 3x3, 1,1, 1,1) without bias\l  (2): nn.ELU (alpha:1.000000)\l  (3): nn.SpatialMaxPooling(2x2, 2,2)\l  (4): cudnn.SpatialConvolution(16 -> 32, 3x3, 1,1, 1,1) without bias\l  (5): nn.ELU (alpha:1.000000)\l  (6): nn.SpatialMaxPooling(2x2, 2,2)\l  (7): cudnn.SpatialConvolution(32 -> 16, 1x1) without bias\l  (8): nn.ELU (alpha:1.000000)\l  (9): cudnn.SpatialConvolution(16 -> 64, 3x3, 1,1, 1,1) without bias\l  (10): nn.ELU (alpha:1.000000)\l  (11): nn.SpatialMaxPooling(2x2, 2,2)\l  (12): cudnn.SpatialConvolution(64 -> 16, 1x1) without bias\l  (13): nn.ELU (alpha:1.000000)\l  (14): cudnn.SpatialConvolution(16 -> 128, 3x3, 1,1, 1,1) without bias\l  (15): nn.ELU (alpha:1.000000)\l  (16): nn.SpatialMaxPooling(2x2, 2,2)\l  (17): cudnn.SpatialConvolution(128 -> 32, 1x1) without bias\l  (18): nn.ELU (alpha:1.000000)\l  (19): cudnn.SpatialConvolution(32 -> 128, 3x3, 1,1, 1,1) without bias\l  (20): nn.ELU (alpha:1.000000)\l  (21): cudnn.SpatialAveragePooling(8x8, 1,1)\l  (22): nn.View(128)\l  (23): nn.Dropout(0.500000)\l  (24): nn.Linear(128 -> 128)\l}\lreverseMap = {}" tooltip="[./models/init_triplet.lua]:118_"];
+n5[label="Node5\nmodule = nn.Sequential {\l  [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> (8) -> (9) -> (10) -> (11) -> (12) -> (13) -> (14) -> (15) -> (16) -> (17) -> (18) -> (19) -> (20) -> (21) -> (22) -> (23) -> (24) -> output]\l  (1): cudnn.SpatialConvolution(3 -> 16, 3x3, 1,1, 1,1) without bias\l  (2): nn.ELU (alpha:1.000000)\l  (3): nn.SpatialMaxPooling(2x2, 2,2)\l  (4): cudnn.SpatialConvolution(16 -> 32, 3x3, 1,1, 1,1) without bias\l  (5): nn.ELU (alpha:1.000000)\l  (6): nn.SpatialMaxPooling(2x2, 2,2)\l  (7): cudnn.SpatialConvolution(32 -> 16, 1x1) without bias\l  (8): nn.ELU (alpha:1.000000)\l  (9): cudnn.SpatialConvolution(16 -> 64, 3x3, 1,1, 1,1) without bias\l  (10): nn.ELU (alpha:1.000000)\l  (11): nn.SpatialMaxPooling(2x2, 2,2)\l  (12): cudnn.SpatialConvolution(64 -> 16, 1x1) without bias\l  (13): nn.ELU (alpha:1.000000)\l  (14): cudnn.SpatialConvolution(16 -> 128, 3x3, 1,1, 1,1) without bias\l  (15): nn.ELU (alpha:1.000000)\l  (16): nn.SpatialMaxPooling(2x2, 2,2)\l  (17): cudnn.SpatialConvolution(128 -> 32, 1x1) without bias\l  (18): nn.ELU (alpha:1.000000)\l  (19): cudnn.SpatialConvolution(32 -> 128, 3x3, 1,1, 1,1) without bias\l  (20): nn.ELU (alpha:1.000000)\l  (21): cudnn.SpatialAveragePooling(8x8, 1,1)\l  (22): nn.View(128)\l  (23): nn.Dropout(0.500000)\l  (24): nn.Linear(128 -> 128)\l}\lreverseMap = {}" tooltip="[./models/init_triplet.lua]:119_"];
+n6[label="Node6\nmodule = nn.Sequential {\l  [input -> (1) -> (2) -> (3) -> (4) -> (5) -> (6) -> (7) -> (8) -> (9) -> (10) -> (11) -> (12) -> (13) -> (14) -> (15) -> (16) -> (17) -> (18) -> (19) -> (20) -> (21) -> (22) -> (23) -> (24) -> output]\l  (1): cudnn.SpatialConvolution(3 -> 16, 3x3, 1,1, 1,1) without bias\l  (2): nn.ELU (alpha:1.000000)\l  (3): nn.SpatialMaxPooling(2x2, 2,2)\l  (4): cudnn.SpatialConvolution(16 -> 32, 3x3, 1,1, 1,1) without bias\l  (5): nn.ELU (alpha:1.000000)\l  (6): nn.SpatialMaxPooling(2x2, 2,2)\l  (7): cudnn.SpatialConvolution(32 -> 16, 1x1) without bias\l  (8): nn.ELU (alpha:1.000000)\l  (9): cudnn.SpatialConvolution(16 -> 64, 3x3, 1,1, 1,1) without bias\l  (10): nn.ELU (alpha:1.000000)\l  (11): nn.SpatialMaxPooling(2x2, 2,2)\l  (12): cudnn.SpatialConvolution(64 -> 16, 1x1) without bias\l  (13): nn.ELU (alpha:1.000000)\l  (14): cudnn.SpatialConvolution(16 -> 128, 3x3, 1,1, 1,1) without bias\l  (15): nn.ELU (alpha:1.000000)\l  (16): nn.SpatialMaxPooling(2x2, 2,2)\l  (17): cudnn.SpatialConvolution(128 -> 32, 1x1) without bias\l  (18): nn.ELU (alpha:1.000000)\l  (19): cudnn.SpatialConvolution(32 -> 128, 3x3, 1,1, 1,1) without bias\l  (20): nn.ELU (alpha:1.000000)\l  (21): cudnn.SpatialAveragePooling(8x8, 1,1)\l  (22): nn.View(128)\l  (23): nn.Dropout(0.500000)\l  (24): nn.Linear(128 -> 128)\l}\lreverseMap = {}" tooltip="[./models/init_triplet.lua]:120_"];
+n7[label="Node7\ninput = {torch.CudaTensor[96x3x112x112]}\lmodule = nn.Identity\lreverseMap = {}" tooltip="[./models/init_triplet.lua]:113_"];
+n8[label="Node8\nmodule = nn.Identity\lreverseMap = {}" tooltip="[./models/init_triplet.lua]:114_"];
+n9[label="Node9\nmodule = nn.Identity\lreverseMap = {}" tooltip="[./models/init_triplet.lua]:115_"];
+n10[label="Node10\ninput = {{torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112]}}\lselectindex = 1\lreverseMap = {}" tooltip="[[C]]:-1_-1"];
+n11[label="Node11\ninput = {{torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112]}}\lselectindex = 2\lreverseMap = {}" tooltip="[[C]]:-1_-2"];
+n12[label="Node12\ninput = {{torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112]}}\lselectindex = 3\lreverseMap = {}" tooltip="[[C]]:-1_-3"];
+n13[label="Node13\ninput = {{torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112]}}\lreverseMap = {}\lnSplitOutputs = 3" tooltip="[[C]]:-1_ split at [...eightbit/torch/install/share/lua/5.1/nngraph/gmodule.lua]:96-mnode"];
+n14[label="Node14\ninput = {torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112],torch.CudaTensor[96x3x112x112]}\lreverseMap = {}" tooltip="[[C]]:-1_"];
+n1 -> n2;
+n3 -> n2;
+n4 -> n1;
+n5 -> n1;
+n4 -> n3;
+n6 -> n3;
+n7 -> n4;
+n8 -> n5;
+n9 -> n6;
+n10 -> n7;
+n11 -> n8;
+n12 -> n9;
+n13 -> n10;
+n13 -> n11;
+n13 -> n12;
+n14 -> n13;
+n4[style=filled, fillcolor=red];
+}
