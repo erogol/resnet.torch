@@ -5,7 +5,7 @@ require 'cunn'
 
 local Convolution = cudnn.SpatialConvolution
 local Avg = cudnn.SpatialAveragePooling
-local ReLU = cudnn.ReLU
+local ReLU = nn.ELU
 local Max = nn.SpatialMaxPooling
 
 local function createModel(opt)
@@ -35,12 +35,13 @@ local function createModel(opt)
 
     model:add(Convolution(128,32,1,1,1,1,0,0))
 	model:add(ReLU())
-    model:add(Convolution(32,256,3,3,1,1,1,1))
+    model:add(Convolution(32,128,3,3,1,1,1,1))
 	model:add(ReLU())
-	model:add(Avg(14,14,1,1))
+	model:add(Avg(7,7,1,1))
 
-	model:add(nn.View(256):setNumInputDims(3))
-	model:add(nn.Linear(256, 10))
+	model:add(nn.View(128):setNumInputDims(3))
+	model:add(nn.Dropout(0.2))
+	model:add(nn.Linear(128, 128))
 
 	local function ConvInit(name)
 		for k,v in pairs(model:findModules(name)) do
