@@ -43,14 +43,14 @@ function M.setup(opt, checkpoint, classWeights)
     if checkpoint then
         local modelPath = paths.concat(opt.resume, checkpoint.modelFile)
         assert(paths.filep(modelPath), 'Saved model not found: ' .. modelPath)
-        print('=> Resuming model from ' .. modelPath)
+        print(' => Resuming model from ' .. modelPath)
         model = torch.load(modelPath):cuda()
     elseif opt.retrain ~= 'none' then
         assert(paths.filep(opt.retrain), 'File not found: ' .. opt.retrain)
         print('Loading model from file: ' .. opt.retrain)
         model = torch.load(opt.retrain):cuda()
     else
-        print('=> Creating model from file: models/' .. opt.netType .. '.lua')
+        print(' => Creating model from file: models/' .. opt.netType .. '.lua')
         model = require('models/' .. opt.netType)(opt)
     end
 

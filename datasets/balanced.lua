@@ -4,7 +4,7 @@
 
 local image = require 'image'
 local paths = require 'paths'
-local t = require 'datasets/transforms_beauty'
+local t = require 'datasets/transforms'
 local ffi = require 'ffi'
 
 local M = {}

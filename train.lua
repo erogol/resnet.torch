@@ -58,13 +58,13 @@ function Trainer:train(epoch, dataloader)
         self.optimState.learningRates = self.optimState.learningRates * self:learningRatesDecay(epoch)
         if self.optimState.learningRates:max() ~= self.lastLearningRate then
             self.lastLearningRate = self.optimState.learningRates:max()
-            print( "=> Learning rate changed to .. ".. self.lastLearningRate)
+            print( " => Learning rate changed to .. ".. self.lastLearningRate)
         end
     else
         self.optimState.learningRate = self:learningRate(epoch)
         if self.optimState.learningRate ~= self.lastLearningRate then
             self.lastLearningRate = self.optimState.learningRate
-            print( "=> Learning rate changed to .. ".. self.lastLearningRate)
+            print( " => Learning rate changed to .. ".. self.lastLearningRate)
         end
     end
 
@@ -106,7 +106,7 @@ function Trainer:train(epoch, dataloader)
         for i,block in ipairs(addtables) do self.model:get(block).gate = true end
     end
 
-    print('=> Training epoch # ' .. epoch)
+    print(' => Training epoch # ' .. epoch)
     -- set the batch norm to training mode
     self.model:training()
     for n, sample in dataloader:run() do
