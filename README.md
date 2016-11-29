@@ -27,4 +27,8 @@ This code is heavily modified with many additions throughout my research. Many o
   
 7. Save the model optimState so that you can continue the training from any checkpoint with all history recovered.
 
+8. dataset/balanced.lua for balancing instance selection against imabalnced datasets
+
+9. Set optimizer adam or sgd (-optimizer (sgd))
+
 WARNING: " I suggest you to use this repo with caution since codes are only used for research purposes and there might be buggy details."
