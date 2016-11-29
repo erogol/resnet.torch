@@ -20,7 +20,7 @@ require 'cudnn'
 require 'nnlr'
 require "nnx"
 require "models/dropresnet"
-require "utils/NormalizedLinearNoBias"
+-- require "utils/NormalizedLinearNoBias"
 require "inn"
 inn.utils = require 'inn.utils'
 local utils = require "utils"
@@ -43,14 +43,14 @@ function M.setup(opt, checkpoint, classWeights)
     if checkpoint then
         local modelPath = paths.concat(opt.resume, checkpoint.modelFile)
         assert(paths.filep(modelPath), 'Saved model not found: ' .. modelPath)
-        print('=> Resuming model from ' .. modelPath)
+        print(' => Resuming model from ' .. modelPath)
         model = torch.load(modelPath):cuda()
     elseif opt.retrain ~= 'none' then
         assert(paths.filep(opt.retrain), 'File not found: ' .. opt.retrain)
         print('Loading model from file: ' .. opt.retrain)
         model = torch.load(opt.retrain):cuda()
     else
-        print('=> Creating model from file: models/' .. opt.netType .. '.lua')
+        print(' => Creating model from file: models/' .. opt.netType .. '.lua')
         model = require('models/' .. opt.netType)(opt)
     end
 
@@ -109,7 +109,7 @@ function M.setup(opt, checkpoint, classWeights)
 
     -- For resetting the classifier when fine-tuning on a different Dataset
     if opt.resetClassifier and not checkpoint then
-        print(' => Replacing classifier with ' .. opt.nClasses .. '-way classifier')
+        print(' => Replacing classifier with a single regression unit')
 
           local orig = model:get(#model.modules)
           assert(torch.type(orig) == 'nn.Linear',
@@ -117,18 +117,16 @@ function M.setup(opt, checkpoint, classWeights)
 
         local linear
 
-        linear = nn.Linear(orig.weight:size(2), opt.nClasses)
+        linear = nn.Linear(orig.weight:size(2), 1)
         linear.bias:zero()
         model:remove(#model.modules)
         model:add(linear:cuda())
 
-        -- print(" => Changes for the new criterion!!!")
-        -- for new criterion
         -- model:add(nn.NormalizedLinearNoBias(orig.weight:size(2), opt.nClasses):cuda())
         -- model:add(nn.Normalize(2):cuda())
     else
         local orig = model:get(#model.modules)
-        assert(orig.weight:size(1) == opt.nClasses)
+        assert(orig.weight:size(1) == 1)
     end
 
     -- Set the CUDNN flags
@@ -159,15 +157,10 @@ function M.setup(opt, checkpoint, classWeights)
     end
 
     -- set class weights
-    local criterion
     if opt.classWeighting then
-        local cachePath = paths.concat(opt.gen, opt.dataset .. '.t7')
-        local imageInfo = torch.load(cachePath)
-        print(" => Class weighting enabled !!")
-        class_weights = torch.Tensor(imageInfo.classWeights)
-        criterion = nn.CrossEntropyCriterion(class_weights, false):cuda()
+        error(" => Cannot use class weighting for regression !!")
     else
-        criterion = nn.CrossEntropyCriterion():cuda()
+        criterion = nn.MSECriterion():cuda()
     end
     return model, criterion
 end

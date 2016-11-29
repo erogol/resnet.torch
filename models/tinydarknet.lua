@@ -58,7 +58,7 @@ local function createModel(opt)
 
 	model:add(nn.View(1024):setNumInputDims(3))
     model:add(nn.Dropout(0.5))
-	model:add(nn.Linear(1024, 1024))
+	model:add(nn.Linear(1024, 1))
 
 	local function ConvInit(name)
 		for k,v in pairs(model:findModules(name)) do

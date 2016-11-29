@@ -58,13 +58,13 @@ function Trainer:train(epoch, dataloader)
         self.optimState.learningRates = self.optimState.learningRates * self:learningRatesDecay(epoch)
         if self.optimState.learningRates:max() ~= self.lastLearningRate then
             self.lastLearningRate = self.optimState.learningRates:max()
-            print( "=> Learning rate changed to .. ".. self.lastLearningRate)
+            print( " => Learning rate changed to .. ".. self.lastLearningRate)
         end
     else
         self.optimState.learningRate = self:learningRate(epoch)
         if self.optimState.learningRate ~= self.lastLearningRate then
             self.lastLearningRate = self.optimState.learningRate
-            print( "=> Learning rate changed to .. ".. self.lastLearningRate)
+            print( " => Learning rate changed to .. ".. self.lastLearningRate)
         end
     end
 
@@ -74,12 +74,10 @@ function Trainer:train(epoch, dataloader)
     local function feval()
         return self.criterion.output, self.gradParams
     end
-    local absCriterion = nn.AbsCriterion():cuda()
 
     local trainSize = dataloader:size()
-    local top1Sum, top5Sum, lossSum, lossAbsSum = 0.0, 0.0, 0.0, 0.0
+    local lossSum = 0.0
     local N = 0
-
 
     if self.opt.netType == 'dropresnet' then
         addtables = {}
@@ -106,7 +104,7 @@ function Trainer:train(epoch, dataloader)
         for i,block in ipairs(addtables) do self.model:get(block).gate = true end
     end
 
-    print('=> Training epoch # ' .. epoch)
+    print(' => Training epoch # ' .. epoch)
     -- set the batch norm to training mode
     self.model:training()
     for n, sample in dataloader:run() do
@@ -128,13 +126,6 @@ function Trainer:train(epoch, dataloader)
         local batchSize = output:size(1)
         local loss = self.criterion:forward(self.model.output, self.target)
 
-        -- Average prediction for regression
-        local softmax = nn.SoftMax():cuda()
-        local outputSoft = softmax:forward(self.model.output)
-        local avgPred = outputSoft * torch.range(1,self.opt.nClasses):cuda()
-        local lossAbs = absCriterion:forward(avgPred, self.target)
-
-
         self.model:zeroGradParameters()
         self.criterion:backward(self.model.output, self.target)
         self.model:backward(self.input, self.criterion.gradInput)
@@ -144,16 +135,11 @@ function Trainer:train(epoch, dataloader)
         else
             optim.sgd(feval, self.params, self.optimState)
         end
-
-        local top1, top5 = self:computeScore(output, sample.target, 1)
-        top1Sum = top1Sum + top1*batchSize
-        top5Sum = top5Sum + top5*batchSize
         lossSum = lossSum + loss*batchSize
-        lossAbsSum = lossAbsSum + lossAbs*batchSize
         N = N + batchSize
 
-        print((' | Epoch: [%d][%d/%d]    Time %.3f  Data %.3f  Err %1.4f  top1 %7.3f  top5 %7.3f  lossAbs %7.3f'):format(
-        epoch, n, trainSize, timer:time().real, dataTime, loss, top1, top5, lossAbs))
+        print((' | Epoch: [%d][%d/%d]    Time %.3f  Data %.3f  Err %1.4f '):format(
+        epoch, n, trainSize, timer:time().real, dataTime, loss))
 
         -- check that the storage didn't get changed do to an unfortunate getParameters call
         assert(self.params:storage() == self.model:parameters()[1]:storage())
@@ -162,21 +148,19 @@ function Trainer:train(epoch, dataloader)
         dataTimer:reset()
     end
 
-    return top1Sum / N, top5Sum / N, lossSum / N, lossAbsSum / N
+    return lossSum / N
 end
 
 function Trainer:test(epoch, dataloader)
-    -- Computes the top-1 and top-5 err on the validation set
 
     local timer = torch.Timer()
     local dataTimer = torch.Timer()
     local size = dataloader:size()
 
     local nCrops = self.opt.tenCrop and 10 or 1
-    local top1Sum, top5Sum, lossSum, lossAbsSum = 0.0, 0.0, 0.0, 0.0
+    local lossSum = 0.0, 0.0, 0.0, 0.0
     local N = 0
 
-    local absCriterion = nn.AbsCriterion():cuda()
 
     self.model:evaluate()
     for n, sample in dataloader:run() do
@@ -189,31 +173,21 @@ function Trainer:test(epoch, dataloader)
         local batchSize = output:size(1) / nCrops
         local loss = self.criterion:forward(self.model.output, self.target)
 
-        -- Average prediction for regression
-        local softmax = nn.SoftMax():cuda()
-        local outputSoft = softmax:forward(self.model.output)
-        local avgPred = outputSoft * torch.range(1,self.opt.nClasses):cuda()
-        local lossAbs = absCriterion:forward(avgPred, self.target)
-
-        local top1, top5 = self:computeScore(output, sample.target, nCrops)
-        top1Sum = top1Sum + top1*batchSize
-        top5Sum = top5Sum + top5*batchSize
         lossSum = lossSum + loss*batchSize
-        lossAbsSum = lossAbsSum + lossAbs*batchSize
         N = N + batchSize
 
-        print((' | Test: [%d][%d/%d]    Time %.3f  Data %.3f  top1 %7.3f (%7.3f)  top5 %7.3f (%7.3f)  loss %7.3f (%7.3f)  lossAbs %7.3f (%7.3f)'):format(
-        epoch, n, size, timer:time().real, dataTime, top1, top1Sum / N, top5, top5Sum / N, loss, lossSum / N, lossAbs, lossAbsSum / N))
+        print((' | Test: [%d][%d/%d]    Time %.3f  Data %.3f  loss %7.3f (%7.3f)'):format(
+        epoch, n, size, timer:time().real, dataTime, loss, lossSum / N))
 
         timer:reset()
         dataTimer:reset()
     end
     self.model:training()
 
-    print((' * Finished epoch # %d     top1: %7.3f  top5: %7.3f  loss: %7.3f  lossAbs: %7.3f \n'):format(
-    epoch, top1Sum / N, top5Sum / N, lossSum / N, lossAbsSum / N))
+    print((' * Finished epoch # %d   loss: %7.3f \n'):format(
+    epoch, lossSum / N))
 
-    return top1Sum / N, top5Sum / N, lossSum / N, lossAbsSum / N
+    return lossSum / N
 end
 
 function Trainer:computeScore(output, target, nCrops)
