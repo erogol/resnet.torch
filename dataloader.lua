@@ -66,22 +66,24 @@ function DataLoader:run()
          threads:addjob(
             function(indices, nCrops)
                local sz = indices:size(1)
-               local batch, imageSize
+               local batch1, batch2, imageSize
                local target = torch.IntTensor(sz)
                for i, idx in ipairs(indices:totable()) do
                   local sample = _G.dataset:get(idx)
                   local input = _G.preprocess(sample.input)
-                  if not batch then
-                     imageSize = input:size():totable()
-                     if nCrops > 1 then table.remove(imageSize, 1) end
-                     batch = torch.FloatTensor(sz, nCrops, table.unpack(imageSize))
+                  if not batch1 then
+                     imageSize = input[1]:size():totable()
+                     batch1 = torch.FloatTensor(sz, nCrops, table.unpack(imageSize))
+                     mageSize = input[2]:size():totable()
+                     batch2 = torch.FloatTensor(sz, nCrops, table.unpack(imageSize))
                   end
-                  batch[i]:copy(input)
+                  batch1[i]:copy(input[1])
+                  batch2[i]:copy(input[2])
                   target[i] = sample.target
                end
                collectgarbage()
                return {
-                  input = batch:view(sz * nCrops, table.unpack(imageSize)),
+                  input = {batch1:view(sz, table.unpack(imageSize)),batch1:view(sz, table.unpack(imageSize))},
                   target = target,
                }
             end,

@@ -1,42 +1,15 @@
---
---  Copyright (c) 2016, Facebook, Inc.
---  All rights reserved.
---
---  This source code is licensed under the BSD-style license found in the
---  LICENSE file in the root directory of this source tree. An additional grant
---  of patent rights can be found in the PATENTS file in the same directory.
---
---  Generic model creating code. For the specific ResNet model see
---  models/resnet.lua
---
--- Updated to freeze convolutional layers for fine-tunning.
--- Requires my version of nnlr
--- Author: Eren Golge -- erengolge@gmail.com
---
+-- Init a siammese network with given models
 
 require 'nn'
 require 'cunn'
 require 'cudnn'
 require 'nnlr'
 require "nnx"
-require "models/dropresnet"
-require "utils/NormalizedLinearNoBias"
 require "inn"
 inn.utils = require 'inn.utils'
 local utils = require "utils"
 
 local M = {}
-
-function M.disableFeatureBackprop(features, maxLayer)
-  noBackpropModules = nn.Sequential()
-  for i = 1,maxLayer do
-    noBackpropModules:add(features.modules[1])
-    features:remove(1)
-  end
-  features:insert(nn.NoBackprop(noBackpropModules):cuda(), 1)
-  return features
-end
-
 
 function M.setup(opt, checkpoint, classWeights)
     local model
@@ -71,6 +44,7 @@ function M.setup(opt, checkpoint, classWeights)
     -- This is useful for fitting ResNet-50 on 4 GPUs, but requires that all
     -- containers override backwards to call backwards recursively on submodules
     if opt.shareGradInput then
+        print(' => shareGradInput optimization...')
         M.shareGradInput(model)
     end
 
@@ -109,27 +83,32 @@ function M.setup(opt, checkpoint, classWeights)
 
     -- For resetting the classifier when fine-tuning on a different Dataset
     if opt.resetClassifier and not checkpoint then
-        print(' => Replacing classifier with ' .. opt.nClasses .. '-way classifier')
+        print(' => Replacing classifier with ' .. opt.nFeatures .. '-way classifier')
 
-          local orig = model:get(#model.modules)
-          assert(torch.type(orig) == 'nn.Linear',
-             'expected last layer to be fully connected')
+        local orig = model:get(#model.modules)
+        assert(torch.type(orig) == 'nn.Linear',
+        'expected last layer to be fully connected')
 
         local linear
-
-        linear = nn.Linear(orig.weight:size(2), opt.nClasses)
+        linear = nn.Linear(orig.weight:size(2), opt.nFeatures)
         linear.bias:zero()
         model:remove(#model.modules)
         model:add(linear:cuda())
-
-        -- print(" => Changes for the new criterion!!!")
-        -- for new criterion
-        -- model:add(nn.NormalizedLinearNoBias(orig.weight:size(2), opt.nClasses):cuda())
-        -- model:add(nn.Normalize(2):cuda())
     else
         local orig = model:get(#model.modules)
-        assert(orig.weight:size(1) == opt.nClasses)
+        assert(orig.weight:size(1) == opt.nFeatures)
     end
+
+    -- Set siammese layer
+    --The siamese model
+    siamese_encoder = nn.ParallelTable()
+    siamese_encoder:add(model:cuda())
+    siamese_encoder:add(model:clone('weight','bias', 'gradWeight','gradBias'):cuda()) --clone the encoder and share the weight, bias. Must also share the gradWeight and gradBias
+
+    model_siamese = nn.Sequential()
+    -- model_siamese:add(nn.SplitTable(1)) -- split input tensor along the rows (1st dimension) to table for input to ParallelTable
+    model_siamese:add(siamese_encoder)
+    model_siamese:add(nn.PairwiseDistance(2):cuda()) --L2 pairwise distance
 
     -- Set the CUDNN flags
     if opt.cudnn == 'fastest' then
@@ -137,39 +116,16 @@ function M.setup(opt, checkpoint, classWeights)
         cudnn.benchmark = true
     elseif opt.cudnn == 'deterministic' then
         -- Use a deterministic convolution implementation
-        model:apply(function(m)
+        model_siamese:apply(function(m)
             if m.setMode then m:setMode(1, 1, 1) end
         end)
     end
 
-    -- Wrap the model with DataParallelTable, if using more than one GPU
-    if opt.nGPU > 1 then
-        local gpus = torch.range(1, opt.nGPU):totable()
-        local fastest, benchmark = cudnn.fastest, cudnn.benchmark
-
-        local dpt = nn.DataParallelTable(1, true, true)
-        :add(model, gpus)
-        :threads(function()
-            local cudnn = require 'cudnn'
-            cudnn.fastest, cudnn.benchmark = fastest, benchmark
-        end)
-        dpt.gradInput = nil
-
-        model = dpt:cuda()
-    end
-
     -- set class weights
     local criterion
-    if opt.classWeighting then
-        local cachePath = paths.concat(opt.gen, opt.dataset .. '.t7')
-        local imageInfo = torch.load(cachePath)
-        print(" => Class weighting enabled !!")
-        class_weights = torch.Tensor(imageInfo.classWeights)
-        criterion = nn.CrossEntropyCriterion(class_weights, false):cuda()
-    else
-        criterion = nn.CrossEntropyCriterion():cuda()
-    end
-    return model, criterion
+    margin = 1
+    criterion = nn.HingeEmbeddingCriterion(margin):cuda()
+    return model_siamese, criterion
 end
 
 function M.shareGradInput(model)
