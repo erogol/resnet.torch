@@ -56,7 +56,7 @@ function M.parse(arg)
     cmd:option('-shareGradInput',  'false', 'Share gradInput tensors to reduce memory usage')
     cmd:option('-optnet',          'false', 'Use optnet to reduce memory usage')
     cmd:option('-resetClassifier', 'false', 'Reset the fully connected layer for fine-tuning')
-    cmd:option('-nClasses',         0,      'Number of classes in the dataset')
+    cmd:option('-nFeatures',         0,      'Number of classes in the dataset')
     ---------- DropResNet options ----------------------------------
     cmd:option('-deathRate', 0.5, 'in stochastic layer resnet death rate of layers (0.5)')
     cmd:option('-deathMode', 'uniform', 'uniform or lin_decay (uniform)')

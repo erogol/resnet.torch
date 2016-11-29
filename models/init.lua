@@ -1,56 +1,32 @@
---
---  Copyright (c) 2016, Facebook, Inc.
---  All rights reserved.
---
---  This source code is licensed under the BSD-style license found in the
---  LICENSE file in the root directory of this source tree. An additional grant
---  of patent rights can be found in the PATENTS file in the same directory.
---
---  Generic model creating code. For the specific ResNet model see
---  models/resnet.lua
---
--- Updated to freeze convolutional layers for fine-tunning.
--- Requires my version of nnlr
--- Author: Eren Golge -- erengolge@gmail.com
---
+-- Init a siammese network with given models
 
 require 'nn'
 require 'cunn'
 require 'cudnn'
 require 'nnlr'
 require "nnx"
-require "models/dropresnet"
-require "utils/NormalizedLinearNoBias"
 require "inn"
+require 'nngraph'
+require 'utils/DistanceRatioCriterion'
+
 inn.utils = require 'inn.utils'
 local utils = require "utils"
 
 local M = {}
-
-function M.disableFeatureBackprop(features, maxLayer)
-  noBackpropModules = nn.Sequential()
-  for i = 1,maxLayer do
-    noBackpropModules:add(features.modules[1])
-    features:remove(1)
-  end
-  features:insert(nn.NoBackprop(noBackpropModules):cuda(), 1)
-  return features
-end
-
 
 function M.setup(opt, checkpoint, classWeights)
     local model
     if checkpoint then
         local modelPath = paths.concat(opt.resume, checkpoint.modelFile)
         assert(paths.filep(modelPath), 'Saved model not found: ' .. modelPath)
-        print('=> Resuming model from ' .. modelPath)
+        print(' => Resuming model from ' .. modelPath)
         model = torch.load(modelPath):cuda()
     elseif opt.retrain ~= 'none' then
         assert(paths.filep(opt.retrain), 'File not found: ' .. opt.retrain)
         print('Loading model from file: ' .. opt.retrain)
         model = torch.load(opt.retrain):cuda()
     else
-        print('=> Creating model from file: models/' .. opt.netType .. '.lua')
+        print(' => Creating model from file: models/' .. opt.netType .. '.lua')
         model = require('models/' .. opt.netType)(opt)
     end
 
@@ -71,6 +47,7 @@ function M.setup(opt, checkpoint, classWeights)
     -- This is useful for fitting ResNet-50 on 4 GPUs, but requires that all
     -- containers override backwards to call backwards recursively on submodules
     if opt.shareGradInput then
+        print(' => shareGradInput optimization...')
         M.shareGradInput(model)
     end
 
@@ -109,7 +86,7 @@ function M.setup(opt, checkpoint, classWeights)
 
     -- For resetting the classifier when fine-tuning on a different Dataset
     if opt.resetClassifier and not checkpoint then
-        print(' => Replacing classifier with ' .. opt.nClasses .. '-way classifier')
+        print(' => Replacing classifier with ' .. opt.nFeatures .. '-way classifier')
 
           local orig = model:get(#model.modules)
           assert(torch.type(orig) == 'nn.Linear',
@@ -117,19 +94,37 @@ function M.setup(opt, checkpoint, classWeights)
 
         local linear
 
-        linear = nn.Linear(orig.weight:size(2), opt.nClasses)
+        linear = nn.Linear(orig.weight:size(2), opt.nFeatures)
         linear.bias:zero()
         model:remove(#model.modules)
         model:add(linear:cuda())
-
-        -- print(" => Changes for the new criterion!!!")
-        -- for new criterion
-        -- model:add(nn.NormalizedLinearNoBias(orig.weight:size(2), opt.nClasses):cuda())
-        -- model:add(nn.Normalize(2):cuda())
     else
         local orig = model:get(#model.modules)
-        assert(orig.weight:size(1) == opt.nClasses)
+        assert(orig.weight:size(1) == opt.nFeatures)
     end
+
+    -- Set Triplet Net
+    -- The siamese model
+    nngraph.setDebug(true)
+    -- Annotate nodes with local variable names
+    nngraph.annotateNodes()
+
+    local inputs = {}
+    inputs[1] = nn.Identity()()
+    inputs[2] = nn.Identity()()
+    inputs[3] = nn.Identity()()
+
+    local embeddings = {}
+    embeddings[1] = model(inputs[1])
+    embeddings[2] = model:clone('weight','bias', 'gradWeight','gradBias')(inputs[2])
+    embeddings[3] = model:clone('weight','bias', 'gradWeight','gradBias')(inputs[3])
+
+    local dists = {}
+    dists[1] = nn.PairwiseDistance(2):clone()({embeddings[1], embeddings[2]}) --L2 pairwise distance
+    dists[2] = nn.PairwiseDistance(2):clone()({embeddings[1], embeddings[3]}) --L2 pairwise distance
+
+    local model_triplet = nn.gModule(inputs,{dists[1], dists[2]}):cuda()
+    model_triplet.name = 'triplet_net'
 
     -- Set the CUDNN flags
     if opt.cudnn == 'fastest' then
@@ -137,39 +132,15 @@ function M.setup(opt, checkpoint, classWeights)
         cudnn.benchmark = true
     elseif opt.cudnn == 'deterministic' then
         -- Use a deterministic convolution implementation
-        model:apply(function(m)
+        model_triplet:apply(function(m)
             if m.setMode then m:setMode(1, 1, 1) end
         end)
     end
 
-    -- Wrap the model with DataParallelTable, if using more than one GPU
-    if opt.nGPU > 1 then
-        local gpus = torch.range(1, opt.nGPU):totable()
-        local fastest, benchmark = cudnn.fastest, cudnn.benchmark
-
-        local dpt = nn.DataParallelTable(1, true, true)
-        :add(model, gpus)
-        :threads(function()
-            local cudnn = require 'cudnn'
-            cudnn.fastest, cudnn.benchmark = fastest, benchmark
-        end)
-        dpt.gradInput = nil
-
-        model = dpt:cuda()
-    end
-
-    -- set class weights
+    -- set criterion
     local criterion
-    if opt.classWeighting then
-        local cachePath = paths.concat(opt.gen, opt.dataset .. '.t7')
-        local imageInfo = torch.load(cachePath)
-        print(" => Class weighting enabled !!")
-        class_weights = torch.Tensor(imageInfo.classWeights)
-        criterion = nn.CrossEntropyCriterion(class_weights, false):cuda()
-    else
-        criterion = nn.CrossEntropyCriterion():cuda()
-    end
-    return model, criterion
+    criterion = nn.DistanceRatioCriterion():cuda()
+    return model_triplet, criterion
 end
 
 function M.shareGradInput(model)
