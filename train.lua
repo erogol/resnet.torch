@@ -117,13 +117,13 @@ function Trainer:train(epoch, dataloader)
             for i,tb in ipairs(addtables) do
                 if torch.rand(1)[1] < self.model:get(tb).deathRate then self.model:get(tb).gate = false end
             end
-        end
-
+        end        
         local dataTime = dataTimer:time().real
 
         -- Copy input and target to the GPU
         self:copyInputs(sample)
         local output = self.model:forward(self.input)[1]:float() -- table of two
+
         local batchSize = output:size()[1]
         local loss = self.criterion:forward(self.model.output)
 

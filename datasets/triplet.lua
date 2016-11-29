@@ -35,7 +35,7 @@ function ImagenetDataset:get(i)
 
     -- image 3 (negative)
     local classIdx3 = classIdx1
-    while classIdx3 - classIdx1 < 2  do
+    while classIdx3 == classIdx1  do
         classIdx3 = torch.random(1, nClasses)
     end
     local imglist = self.imageInfo.imagePath[classIdx3]
@@ -95,23 +95,23 @@ local pca = {
 function ImagenetDataset:preprocess()
     if self.split == 'train' then
         return t.Compose{
-            t.Scale(112),
-            t.CenterCrop(112),
+            t.Scale(32),
             -- t.RandomSizedCrop(224),
             -- t.ColorJitter({
             --   brightness = 0.1,
             --   contrast = 0.1,
             --    saturation = 0.1,
             -- }),
-            -- t.Rotation(45),
+            t.Rotation(45),
             t.ColorNormalize(meanstd),
+            t.CenterCrop(32),
             t.HorizontalFlip(0.5),
         }
     elseif self.split == 'val' then
         return t.Compose{
-            t.Scale(112),
+            t.Scale(32),
             t.ColorNormalize(meanstd),
-            t.CenterCrop(112),
+            t.CenterCrop(32),
         }
     else
         error('invalid split: ' .. self.split)
