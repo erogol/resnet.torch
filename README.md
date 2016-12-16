@@ -34,8 +34,8 @@ This code is heavily modified with many additions throughout my research. Many o
 
 <b>NOTE</b>: Check other branches of the project. Eacn includes a particular model architecture.
 
-- Siamese: Learning embeddings of data based on instance similarity.http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
-- TripletNet: Learning embeddings of data based on instance similarity. https://arxiv.org/pdf/1412.6622.pdf
-- Regeression Net: It is the same network structure but the code is tuned for Regression.
+- <b>Siamese:</b> Learning embeddings of data based on instance similarity.http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
+- <b>TripletNet:</b> Learning embeddings of data based on instance similarity. https://arxiv.org/pdf/1412.6622.pdf
+- <b>Regeression:</b> It is the same network structure but the code is tuned for Regression.
 
 WARNING: " I suggest you to use this repo with caution since codes are only used for research purposes and there might be buggy details."
