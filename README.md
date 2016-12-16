@@ -32,7 +32,7 @@ This code is heavily modified with many additions throughout my research. Many o
 9. Set optimizer adam or sgd (-optimizer (sgd))
 
 
-<s>NOTE</s>: Check other branches of the project. Eacn includes a particular model architecture.
+<b>NOTE</b>: Check other branches of the project. Eacn includes a particular model architecture.
 
 - Siamese: Learning embeddings of data based on instance similarity.http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
 - TripletNet: Learning embeddings of data based on instance similarity. https://arxiv.org/pdf/1412.6622.pdf
